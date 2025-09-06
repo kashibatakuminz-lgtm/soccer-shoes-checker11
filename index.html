@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>足型診断スパイクセレクター⚽</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;line-height:1.6;margin:20px}
+    h1{color:#222;margin-bottom:10px}
+    label{display:block;margin-top:10px;font-weight:bold}
+    input,select,button{margin-top:6px;padding:8px;max-width:260px}
+    small{color:#555}
+    .result{margin-top:18px;padding:14px;border:1px solid #ccc;background:#f8f8f8}
+    ul{margin:6px 0 0 20px}
+  </style>
+</head>
+<body>
+  <h1>足型診断スパイクセレクター⚽</h1>
+
+  <label>足のサイズ（cm）
+    <input type="number" id="size" step="0.1" placeholder="例: 25.5">
+  </label>
+
+  <label>足の幅（cm）
+    <input type="number" id="width" step="0.1" placeholder="例: 10.0">
+  </label>
+
+  <label>足型タイプ
+    <select id="footType">
+      <option value="egypt">👣 エジプト型（親指が一番長い）</option>
+      <option value="greek">👣 ギリシャ型（人差し指が一番長い）</option>
+      <option value="square">👣 スクエア型（親指と人差し指が同じ）</option>
+    </select>
+    <small>迷ったら指の長さを横から見て判断</small>
+  </label>
+
+  <label>アーチの高さ（床→土踏まずの一番高い所）
+    <select id="arch">
+      <option value="high">高い（4.0cm以上）</option>
+      <option value="normal">普通（2.5〜3.9cm）</option>
+      <option value="low">低い（〜2.4cm）</option>
+    </select>
+    <small>椅子に座って定規を立てて高さを測る</small>
+  </label>
+
+  <label>希望／現在のポジション
+    <select id="wishPos">
+      <option value="FW">FW（フォワード）</option>
+      <option value="WG">WG（ウイング）</option>
+      <option value="OMF">OMF（攻撃的MF）</option>
+      <option value="CMF">CMF（中央MF）</option>
+      <option value="DMF">DMF（守備的MF）</option>
+      <option value="SB">SB（サイドバック）</option>
+      <option value="CB">CB（センターバック）</option>
+      <option value="GK">GK（ゴールキーパー）</option>
+    </select>
+  </label>
+
+  <button onclick="diagnose()">診断する</button>
+
+  <div id="result" class="result"></div>
+
+  <script>
+    function classifyWidth(w){
+      if(!w) return "normal";
+      if(w <= 9.0) return "narrow";
+      if(w >= 11.0) return "wide";
+      return "normal";
+    }
+
+    function recommendModels(widthClass){
+      if(widthClass==="narrow")  return "Nike Mercurial, Nike Phantom GX, Puma Ultra（細め）";
+      if(widthClass==="wide")    return "adidas Predator, Mizuno Morelia Neo, Asics DS LIGHT（ワイド）";
+      return "Nike Phantom GX, adidas Copa Pure, Puma Future（標準）";
+    }
+
+    function derivePlayType(footType, arch, widthClass){
+      let pos = [];
+      let strengths = [];
+      let weaknesses = [];
+      // 足型
+      if(footType==="greek"){ strengths.push("短距離ダッシュ/瞬発・シュート精度が出やすい"); pos.push("FW","WG","OMF"); }
+      if(footType==="egypt"){ strengths.push("蹴り足のパワーとロングキックが出しやすい"); pos.push("OMF","CMF","FW"); }
+      if(footType==="square"){ strengths.push("接地安定でパス/守備の安定感"); pos.push("DMF","CB","SB","CMF"); }
+      // アーチ
+      if(arch==="high"){ strengths.push("ジャンプ/スプリントが得意"); weaknesses.push("疲労・足首の負担 ↑ → クッション性を確保"); }
+      if(arch==="normal"){ strengths.push("バランス良く多くの役割に適応"); }
+      if(arch==="low"){ strengths.push("接地安定・長時間のプレーに強い"); weaknesses.push("トップスピード/切り返しは少し苦手 → アーチサポートを併用"); }
+      // 幅
+      if(widthClass==="narrow"){ strengths.push("シューズ内での遊びが少なく敏捷性◎"); }
+      if(widthClass==="wide"){ strengths.push("当たり負けしにくい踏ん張り"); weaknesses.push("細身スパイクは圧迫に注意"); }
+      // 推奨ポジションを2つに整理
+      let unique = [...new Set(pos)];
+      return { pos: unique.slice(0,2), strengths, weaknesses };
+    }
+
+    function positionAdvice(pos){
+      const map = {
+        "FW":"FW：ゴール前の決定力と一瞬の抜け出し。練習→5mダッシュ×8本、ラ・クロケタ/チョップで角度を作る。",
+        "WG":"WG：縦突破とカットイン。練習→10m加速走、アウト→インのタッチで速度を落とさず方向転換。",
+        "OMF":"OMF：最終パスとミドル。練習→首振り→半身で受ける→ワンタッチ&ミドルの反復。",
+        "CMF":"CMF：配球と運動量。練習→三角パス連続/方向転換ターン（クライフ）を正確に。",
+        "DMF":"DMF：ボール奪取と配球の安定。練習→1対1の間合い/奪ってすぐ前進の型。",
+        "SB":"SB：上下動と対人。練習→リカバリースプリント&斜めバック走/クロス精度。",
+        "CB":"CB：空中戦とポジショニング。練習→ジャンプ&着地/相手を背中でブロックする体の使い方。",
+        "GK":"GK：反応と踏ん張り。練習→サイドステップ→セーブ/着地の安定（足首強化）。"
+      };
+      return map[pos] || "";
+    }
+
+    function diagnose(){
+      const size  = parseFloat(document.getElementById("size").value || "0");
+      const width = parseFloat(document.getElementById("width").value || "0");
+      const footType = document.getElementById("footType").value;
+      const arch = document.getElementById("arch").value;
+      const wish = document.getElementById("wishPos").value;
+
+      const widthClass = classifyWidth(width);
+      const recModel   = recommendModels(widthClass);
+      const prof       = derivePlayType(footType, arch, widthClass);
+
+      // 希望ポジションも表示（客観診断と並記）
+      let posLine = prof.pos.join(" / ");
+      let wishLine = wish ? `（希望：${wish}）` : "";
+
+      // 希望ポジションの具体アドバイス
+      const wishAdvice = wish ? positionAdvice(wish) : "";
+
+      document.getElementById("result").innerHTML = `
+        <h3>診断結果</h3>
+        <b>向いているポジション候補：</b> ${posLine} ${wishLine}<br>
+        <b>おすすめスパイク：</b> ${recModel}<br>
+        <b>強み：</b>
+        <ul>${prof.strengths.map(s=>`<li>${s}</li>`).join("")}</ul>
+        <b>弱み・注意点：</b>
+        <ul>${(prof.weaknesses.length?prof.weaknesses:["特になし（基礎を継続）"]).map(s=>`<li>${s}</li>`).join("")}</ul>
+        <b>ポジション別アドバイス：</b><br>${wishAdvice || "選択したポジションを上のプルダウンから選ぶと、練習の方向性が表示されます。"}<br><br>
+        <b>入力：</b> 足サイズ ${size||"-"} cm / 足幅 ${width||"-"} cm ・ 足型 ${footType} ・ アーチ ${arch}
+      `;
+    }
+  </script>
+</body>
+</html>
