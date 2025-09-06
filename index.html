@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>足型診断スパイクセレクター⚽</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;line-height:1.6;margin:20px}
+    h1{margin:0 0 10px}
+    label{display:block;margin-top:10px;font-weight:bold}
+    input,select,button{margin-top:6px;padding:8px;max-width:280px}
+    small{color:#555}
+    .result{margin-top:18px;padding:14px;border:1px solid #ccc;background:#f8f8f8}
+    ul{margin:6px 0 0 20px}
+  </style>
+</head>
+<body>
+  <h1>足型診断スパイクセレクター⚽</h1>
+
+  <label>足のサイズ（cm）
+    <input type="number" id="size" step="0.1" placeholder="例: 25.5">
+  </label>
+
+  <label>足の幅（cm）
+    <input type="number" id="width" step="0.1" placeholder="例: 10.0">
+  </label>
+
+  <label>足型タイプ
+    <select id="footType">
+      <option value="egypt">👣 エジプト型（親指が一番長い）</option>
+      <option value="greek">👣 ギリシャ型（人差し指が一番長い）</option>
+      <option value="square">👣 スクエア型（親指と人差し指が同じ）</option>
+    </select>
+    <small>迷ったら指の長さを横から見て判断</small>
+  </label>
+
+  <label>アーチの高さ（床→土踏まずの一番高い所）
+    <select id="arch">
+      <option value="high">高い（4.0cm以上）</option>
+      <option value="normal">普通（2.5〜3.9cm）</option>
+      <option value="low">低い（〜2.4cm）</option>
+    </select>
+    <small>椅子に座り定規を立てて高さを測る</small>
+  </label>
+
+  <label>現在使っているメーカー
+    <select id="brand">
+      <option value="none">持っていない</option>
+      <option value="nike">Nike</option>
+      <option value="adidas">adidas</option>
+      <option value="puma">Puma</option>
+      <option value="mizuno">Mizuno</option>
+      <option value="asics">Asics</option>
+    </select>
+  </label>
+
+  <label>希望／現在のポジション
+    <select id="wishPos">
+      <option value="FW">FW（フォワード）</option>
+      <option value="WG">WG（ウイング）</option>
+      <option value="OMF">OMF（攻撃的MF）</option>
+      <option value="CMF">CMF（中央MF）</option>
+      <option value="DMF">DMF（守備的MF）</option>
+      <option value="SB">SB（サイドバック）</option>
+      <option value="CB">CB（センターバック）</option>
+      <option value="GK">GK（ゴールキーパー）</option>
+    </select>
+  </label>
+
+  <button onclick="diagnose()">診断する</button>
+
+  <div id="result" class="result"></div>
+
+  <script>
+    // 幅クラス判定
+    const widthLevel = v=>{
+      if(!v) return "normal";
+      const w = parseFloat(v);
+      if(w <= 9.0)  return "narrow";
+      if(w >= 11.0) return "wide";
+      return "normal";
+    };
+
+    // ブランドの幅傾向（ざっくり）
+    const brandBase = {
+      nike:   "narrow",
+      adidas: "normal",
+      puma:   "narrow",
+      mizuno: "wide",
+      asics:  "wide",
+      none:   "normal"
+    };
+
+    // ポジション助言
+    const posAdvice = {
+      FW:  "決定力と一瞬の抜け出し。5mダッシュ×8本／ワンタッチ&逆足シュート反復／チョップ&ラ・クロケタで角度作り。",
+      WG:  "縦突破とカットイン。10m加速走／アウト→インのタッチ／逆足クロス&ニア叩き込み。",
+      OMF: "最終パス&ミドル。首振り→半身で受ける→ワンタッチ展開／クライフターンからの前進。",
+      CMF: "配球と運動量。三角パス連続／方向転換ターン／中距離パス精度UP。",
+      DMF: "奪取&前進。1対1の間合い／奪って前を向く型／守備から攻撃のファーストパス。",
+      SB:  "上下動&対人。リカバリースプリント／斜めバック走／クロス精度。",
+      CB:  "空中戦&ポジショニング。ジャンプ&着地／背中でブロック／クリア&縦パス判断。",
+      GK:  "反応&踏ん張り。サイドステップ→セーブ→着地安定（足首強化）。"
+    };
+
+    // 足×幅×アーチからポジション候補ざっくり
+    function derivePositions(footType, arch, wClass){
+      const list = [];
+      if(footType==="greek")   list.push("FW","WG","OMF");
+      if(footType==="egypt")   list.push("OMF","CMF","FW");
+      if(footType==="square")  list.push("DMF","CB","SB","CMF");
+      if(arch==="high")        list.unshift("FW","WG");
+      if(arch==="low")         list.unshift("DMF","CB");
+      if(wClass==="narrow")    list.unshift("WG","FW");
+      if(wClass==="wide")      list.unshift("CB","DMF","SB");
+      // 重複除去して2つ
+      return [...new Set(list)].slice(0,2);
+    }
+
+    // 同ブランド内の推奨（幅×アーチで分岐）
+    function brandModelHints(brand, wClass, arch){
+      const pick = {
+        nike:   {
+          narrow:  arch==="low" ? "Phantom GX / Tiempo（アーチ補助）" : "Mercurial / Phantom GX",
+          normal:  arch==="low" ? "Tiempo / Phantom GX" : "Phantom GX",
+          wide:    "Tiempo / Phantom GX（幅きつい場合は他社ワイドへ）"
+        },
+        adidas: {
+          narrow:  arch==="low" ? "Predator（サポート）" : "X Crazyfast",
+          normal:  "Copa Pure / Predator",
+          wide:    "Copa Pure / Copa Gloro / Predator（Wide設定）"
+        },
+        puma:   {
+          narrow:  arch==="low" ? "Future（ミッドフットサポート）" : "Ultra",
+          normal:  "Future",
+          wide:    "（ワイド少）→ 他社ワイド候補へ"
+        },
+        mizuno: {
+          narrow:  "α Japan / Morelia Neo（細めを試着）",
+          normal:  "Morelia Neo / Rebula",
+          wide:    "Morelia II / Monarcida Neo Wide"
+        },
+        asics:  {
+          narrow:  "（細め少）→ DS LIGHT ACROS など。合わなければ他社ナローへ",
+          normal:  "DS LIGHT X-FLY PRO / ULTREZZA",
+          wide:    "DS LIGHT WIDE / ULTREZZA 2 WIDE"
+        },
+        none:   {
+          narrow:  "Nike Mercurial / Puma Ultra",
+          normal:  "Nike Phantom GX / adidas Copa Pure / Puma Future",
+          wide:    "Mizuno Morelia / adidas Copa（Wide） / Asics DS LIGHT WIDE"
+        }
+      };
+      return (pick[brand] && pick[brand][wClass]) || "";
+    }
+
+    // 他社代替候補（幅ベース）
+    function altBrandHints(wClass){
+      if(wClass==="narrow")  return "ナロー傾向：Nike Mercurial / Puma Ultra / adidas X";
+      if(wClass==="wide")    return "ワイド傾向：Mizuno Morelia / Asics DS LIGHT WIDE / adidas Copa";
+      return "標準：Nike Phantom GX / adidas Copa Pure / Puma Future";
+    }
+
+    // ミスマッチのリスク文言
+    function riskByMismatch(wClass, base, arch){
+      const rank = x=> x==="narrow"?0 : x==="normal"?1 : 2;
+      const diff = Math.abs(rank(wClass)-rank(base));
+      let risks = [];
+      if(diff>=1){
+        if(wClass==="wide" && base==="narrow"){
+          risks.push("足幅圧迫→親指/小指の痛み・爪下血腫・外反母趾・第5中足骨の疲労骨折");
+        }
+        if(wClass==="narrow" && base==="wide"){
+          risks.push("かかと浮き→靴擦れ・水ぶくれ・ねんざ（横ブレ）・キック精度低下");
+        }
+        if(wClass==="normal" && base!=="normal"){
+          risks.push("フィット不均一→マメ/靴擦れ・反応遅れ");
+        }
+      }
+      // アーチ由来
+      if(arch==="high"){
+        risks.push("クッション不足→足底筋膜炎・シンスプリント・疲労骨折");
+      }
+      if(arch==="low"){
+        risks.push("アーチ支持不足→後脛骨筋炎・膝の内倒れ・足底筋膜炎");
+      }
+      return risks;
+    }
+
+    // 総合診断
+    function diagnose(){
+      const size  = parseFloat(document.getElementById("size").value||"0");
+      const width = parseFloat(document.getElementById("width").value||"0");
+      const foot  = document.getElementById("footType").value;
+      const arch  = document.getElementById("arch").value;
+      const brand = document.getElementById("brand").value;
+      const wish  = document.getElementById("wishPos").value;
+
+      const wClass = widthLevel(width);
+      const base   = brandBase[brand] || "normal";
+
+      // 適合度
+      const score = {narrow:0,normal:1,wide:2};
+      const diff  = Math.abs(score[wClass]-score[base]);
+      const fitLabel = diff===0 ? "合いやすい"
+                      : diff===1 ? "やや合いにくい"
+                      : "合いにくい";
+
+      // ポジション候補
+      const posCand = derivePositions(foot, arch, wClass);
+
+      // 出力パーツ
+      const sameBrand = brandModelHints(brand, wClass, arch);
+      const altBrand  = altBrandHints(wClass);
+      const risks     = riskByMismatch(wClass, base, arch);
+
+      // ポジションの具体アドバイス
+      const wishText = posAdvice[wish] || "";
+
+      // 画面出力
+      document.getElementById("result").innerHTML = `
+        <h3>診断結果</h3>
+        <b>向いているポジション候補：</b> ${posCand.join(" / ")}（希望：${wish}）<br>
+        <b>現在のメーカー適合度：</b> ${brand.toUpperCase()} は <b>${fitLabel}</b>（あなたの足幅：${wClass} ／ ブランド傾向：${base}）<br>
+        <b>同メーカー内のおすすめ：</b> ${sameBrand}<br>
+        <b>他メーカーの代替候補：</b> ${altBrand}<br>
+        <b>弱み・注意点（リスク）：</b>
+        <ul>${(risks.length?risks:["大きなリスクは少ないが、長時間使用時はマメや疲労に注意。"]).map(r=>`<li>${r}</li>`).join("")}</ul>
+        <b>ポジション別アドバイス：</b><br>${wishText || "ポジションを選ぶと練習方針が表示されます。"}<br><br>
+        <b>入力：</b> 足サイズ ${size||"-"} cm / 足幅 ${width||"-"} cm ・ 足型 ${foot} ・ アーチ ${arch} ・ メーカー ${brand.toUpperCase()}
+      `;
+    }
+  </script>
+</body>
+</html>
