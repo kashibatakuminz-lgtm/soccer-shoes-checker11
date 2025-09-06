@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>サッカーシューズ診断ツール⚽</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { color: #222; }
+    label { display: block; margin-top: 8px; }
+    select, input { margin-top: 5px; padding: 5px; }
+    button { margin-top: 15px; padding: 10px; }
+    .result { margin-top: 20px; padding: 15px; border: 1px solid #ccc; background: #fafafa; }
+  </style>
+</head>
+<body>
+  <h1>サッカーシューズ診断ツール⚽</h1>
+
+  <form id="diagnosisForm">
+    <label>足のサイズ（長さ cm）：<input type="number" step="0.1" id="size"></label>
+    <label>足幅（cm）：<input type="number" step="0.1" id="width"></label>
+
+    <label>足型を選択してください:
+      <select id="footType">
+        <option value="greek">ギリシャ型（人差し指が一番長い）</option>
+        <option value="egyptian">エジプト型（親指が一番長い）</option>
+        <option value="square">スクエア型（指の長さがほぼ同じ）</option>
+      </select>
+    </label>
+
+    <label>アーチの高さ（床から土踏まずの一番高い所までを測る cm）：
+      <input type="number" step="0.1" id="archHeight"> 
+      <small>高い:4cm以上 / 普通:2.5〜3.9cm / 低い:2.4cm以下</small>
+    </label>
+
+    <label>現在使っているメーカー:
+      <select id="brand">
+        <option value="Nike">Nike</option>
+        <option value="adidas">adidas</option>
+        <option value="Mizuno">Mizuno</option>
+        <option value="Puma">Puma</option>
+        <option value="Asics">Asics</option>
+        <option value="none">持っていない</option>
+      </select>
+    </label>
+
+    <label>希望ポジション:
+      <select id="position">
+        <option value="FW">FW（フォワード）</option>
+        <option value="WG">WG（ウィング）</option>
+        <option value="OMF">OMF（攻撃的MF）</option>
+        <option value="CMF">CMF（セントラルMF）</option>
+        <option value="DMF">DMF（守備的MF）</option>
+        <option value="CB">CB（センターバック）</option>
+        <option value="SB">SB（サイドバック）</option>
+        <option value="GK">GK（ゴールキーパー）</option>
+      </select>
+    </label>
+
+    <button type="button" onclick="diagnose()">診断する</button>
+  </form>
+
+  <div id="result" class="result"></div>
+
+  <script>
+    function diagnose() {
+      const size = document.getElementById("size").value;
+      const width = document.getElementById("width").value;
+      const footType = document.getElementById("footType").value;
+      const archHeight = document.getElementById("archHeight").value;
+      const brand = document.getElementById("brand").value;
+      const position = document.getElementById("position").value;
+
+      let resultHTML = `<h2>診断結果</h2>`;
+      resultHTML += `<p>希望ポジション：${position}</p>`;
+      resultHTML += `<p>足サイズ：${size}cm、足幅：${width}cm、足型：${footType}、アーチ：${archHeight}cm</p>`;
+      resultHTML += `<p>現在のメーカー：${brand}</p>`;
+
+      let data = {
+        "FW": {
+          posCandidate: "OMF / CMF（テクニック型）",
+          players: "レヴァンドフスキ（海外）／久保建英（日本）",
+          strong: "フィジカルとポジショニング",
+          weak: "スピード不足 → スプリントトレーニング推奨",
+          advice: "裏抜けとポストプレーを徹底",
+          boots: "Nike Mercurial, adidas X, Mizuno α"
+        },
+        "WG": {
+          posCandidate: "FW / OMF",
+          players: "サラー（海外）／三笘薫（日本）",
+          strong: "スピードと突破力",
+          weak: "フィジカルで不利 → 体幹強化推奨",
+          advice: "カットイン＋クロス精度を高める",
+          boots: "Nike Mercurial, Puma Ultra, adidas X"
+        },
+        "OMF": {
+          posCandidate: "CMF / FW",
+          players: "デ・ブライネ（海外）／香川真司（日本）",
+          strong: "創造性とラストパス",
+          weak: "守備力不足 → 守備連動の習慣をつける",
+          advice: "中盤と前線のリンク役を磨く",
+          boots: "adidas Predator, Puma Future, Mizuno Rebula"
+        },
+        "CMF": {
+          posCandidate: "OMF / DMF",
+          players: "モドリッチ（海外）／遠藤航（日本）",
+          strong: "視野の広さとパス配給",
+          weak: "守備の切り替え遅れ → 守備練習強化",
+          advice: "パス精度とボール奪取を両立",
+          boots: "adidas Predator, Mizuno Rebula, Puma Future"
+        },
+        "DMF": {
+          posCandidate: "CMF / CB",
+          players: "カゼミーロ（海外）／長谷部誠（日本）",
+          strong: "ボール奪取と守備バランス",
+          weak: "展開力不足 → 配球練習で補強",
+          advice: "中盤の潰し屋＋ゲームメイク両立",
+          boots: "Mizuno Rebula, adidas Predator, Puma Future"
+        },
+        "CB": {
+          posCandidate: "DMF / SB",
+          players: "セルヒオ・ラモス（海外）／吉田麻也（日本）",
+          strong: "空中戦と対人守備",
+          weak: "俊敏性不足 → アジリティ練習",
+          advice: "ビルドアップとライン統率を強化",
+          boots: "Nike Tiempo, Mizuno Morelia, adidas Copa Pure"
+        },
+        "SB": {
+          posCandidate: "WG / CB",
+          players: "マルセロ（海外）／酒井宏樹（日本）",
+          strong: "上下動のスタミナ",
+          weak: "ポジショニング乱れ → 戦術理解強化",
+          advice: "クロス精度と守備安定の両立",
+          boots: "Nike Tiempo, Puma Ultra, Mizuno Morelia"
+        },
+        "GK": {
+          posCandidate: "CB / DMF",
+          players: "ノイアー（海外）／川島永嗣（日本）",
+          strong: "反応速度とセービング",
+          weak: "足元の不安定さ → ビルドアップ練習",
+          advice: "守備範囲と足元技術を磨く",
+          boots: "Nike Phantom GX, Puma Future, Mizuno Morelia Neo"
+        }
+      };
+
+      if (data[position]) {
+        const d = data[position];
+        resultHTML += `<p>適性ポジション候補：${d.posCandidate}</p>`;
+        resultHTML += `<p>プロ選手例：${d.players}</p>`;
+        resultHTML += `<p><strong>強み：</strong>${d.strong}</p>`;
+        resultHTML += `<p><strong>弱み・注意点：</strong>${d.weak}</p>`;
+        resultHTML += `<p><strong>希望ポジションで頑張るなら：</strong>${d.advice}</p>`;
+        resultHTML += `<p><strong>おすすめスパイク：</strong>${d.boots}</p>`;
+      }
+
+      // メーカー相性コメント
+      let brandComment = "";
+      if (brand === "Nike") brandComment = "Nikeは細めの作り。幅広の人は靴擦れや外反母趾に注意。";
+      if (brand === "adidas") brandComment = "adidasは標準的。多くの足型に合うが幅広には窮屈な場合あり。";
+      if (brand === "Mizuno") brandComment = "Mizunoは日本人向けの幅広設計。フィット感◎。";
+      if (brand === "Puma") brandComment = "Pumaは細め軽量。スピード重視に合うが幅広は注意。";
+      if (brand === "Asics") brandComment = "Asicsは安定感重視。成長期の選手にもおすすめ。";
+      if (brand === "none") brandComment = "まだシューズを持っていない → 店頭で必ず試着を！";
+
+      resultHTML += `<p><strong>メーカー相性：</strong>${brandComment}</p>`;
+      resultHTML += `<p><strong>インソールアドバイス：</strong>アーチサポートや衝撃吸収タイプでフィット感を補強。</p>`;
+      resultHTML += `<p><strong>総括：</strong>⚠️ 合わないシューズを履き続けると、外反母趾・足首捻挫・疲労骨折のリスク。特に小中学生は膝や腰への影響大。必ずフィット感を重視！</p>`;
+
+      document.getElementById("result").innerHTML = resultHTML;
+    }
+  </script>
+</body>
+</html>
