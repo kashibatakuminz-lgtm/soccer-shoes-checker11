@@ -2,47 +2,39 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>足型診断スパイクセレクター</title>
+  <title>足型診断スパイクセレクター⚽</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 30px; }
-    h1 { color: #222; }
-    label { display: block; margin-top: 15px; }
-    select, input { padding: 5px; margin-top: 5px; width: 200px; }
-    button { margin-top: 20px; padding: 10px 20px; background: #222; color: #fff; border: none; cursor: pointer; }
-    #result { margin-top: 30px; padding: 15px; border: 1px solid #ccc; background: #f9f9f9; }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { color: #333; }
+    label { display: block; margin-top: 10px; }
+    select, input { margin-top: 5px; padding: 5px; width: 200px; }
+    .result { margin-top: 20px; padding: 10px; border: 1px solid #333; background: #f9f9f9; }
   </style>
 </head>
 <body>
-
   <h1>足型診断スパイクセレクター⚽</h1>
-  <p>足の特徴とポジションを入力すると、おすすめシューズと向きポジションを提案します！</p>
 
   <form id="diagnosisForm">
-    <label>足のサイズ（cm）:
-      <input type="number" id="size" step="0.5" required>
-    </label>
+    <label>足のサイズ（cm）：<input type="number" id="size" required></label>
+    <label>足の幅（cm）：<input type="number" id="width" required></label>
 
-    <label>足の幅（cm）:
-      <input type="number" id="width" step="0.1" required>
-    </label>
-
-    <label>足型タイプ:
+    <label>足型タイプ：
       <select id="footType">
-        <option value="egypt">エジプト型（親指が長い）</option>
-        <option value="greek">ギリシャ型（人差し指が長い）</option>
-        <option value="square">スクエア型（親指と人差し指が同じ）</option>
+        <option value="egypt">エジプト型（親指が一番長い）</option>
+        <option value="greek">ギリシャ型（人差し指が一番長い）</option>
+        <option value="square">スクエア型（親指・人差し指がほぼ同じ長さ）</option>
       </select>
     </label>
 
-    <label>アーチの高さ:
+    <label>アーチの高さ（床から土踏まずまでの高さで判断）：
       <select id="arch">
-        <option value="high">高い</option>
-        <option value="normal">普通</option>
-        <option value="low">低い</option>
+        <option value="high">高い（4cm以上）→ スピード系に強いが疲れやすい</option>
+        <option value="normal">普通（2.5〜3.9cm）→ バランス型、多くのポジションに適応</option>
+        <option value="low">低い（2.4cm以下）→ 安定性が高く持久力に強い</option>
       </select>
     </label>
 
-    <label>希望／現在のポジション:
+    <label>希望／現在のポジション：
       <select id="position">
         <option value="fw">FW（フォワード）</option>
         <option value="mf">MF（ミッドフィルダー）</option>
@@ -54,7 +46,7 @@
     <button type="button" onclick="diagnose()">診断する</button>
   </form>
 
-  <div id="result"></div>
+  <div id="result" class="result"></div>
 
   <script>
     function diagnose() {
@@ -64,47 +56,47 @@
       const arch = document.getElementById("arch").value;
       const position = document.getElementById("position").value;
 
-      let recommendation = "";
+      let model = "";
       let strength = "";
+      let advice = "";
 
-      // 足型と幅で診断ロジック
-      if (footType === "greek" && width <= 10) {
-        recommendation = "Nike Mercurial / Phantom GX（ナロー足向け）";
-        strength = "瞬発力・裏抜け型、消えるFWスタイルに向きます！";
-      } else if (footType === "egypt" && width >= 9) {
-        recommendation = "Mizuno Morelia Neo / Adidas Copa Pure（幅広向け）";
-        strength = "安定性・持久力型、中盤やサイドで活躍できます！";
-      } else if (footType === "square") {
-        recommendation = "Puma Future / Adidas Predator（標準フィット）";
-        strength = "バランス型、MFやDFでのコントロール役に最適です！";
+      // 足型タイプごとの推奨
+      if (footType === "greek") {
+        model = "Nike Mercurial / Phantom GX";
+        strength = "瞬発力・裏抜けに強い。ストライカー向き。";
+      } else if (footType === "egypt") {
+        model = "Asics / Mizuno Rebula";
+        strength = "安定性と持久力に優れ、ボランチやサイドに最適。";
       } else {
-        recommendation = "Nike Phantom GX 2 / Puma Ultra（汎用フィット）";
-        strength = "攻守両面で適応できる万能タイプ！";
+        model = "Adidas Copa / Predator";
+        strength = "バランス型でパス・守備の安定感が強み。";
       }
 
-      // アーチ補足
+      // アーチによるアドバイス追加
       if (arch === "high") {
-        strength += " アーチが高いので、スピードとジャンプ力が得意です。";
-      } else if (arch === "low") {
-        strength += " アーチが低いので、インソールでサポートすると安定します。";
+        advice = "高いアーチ → 接地面が少なくスピードやジャンプ力に強いですが、疲れやすいのでクッション性の高いインソールが有効です。";
+      } else if (arch === "normal") {
+        advice = "普通のアーチ → バランス型で特に弱点が少なく、多くのポジションに適応可能です。";
+      } else {
+        advice = "低いアーチ → 接地面が広く安定性に優れる反面、瞬発力はやや弱め。持久力や守備型ポジションで強みを発揮します。";
       }
 
-      // ポジション補足
-      let posName = "";
-      if (position === "fw") posName = "FW（ストライカー）";
-      if (position === "mf") posName = "MF（ゲームメーカー）";
-      if (position === "df") posName = "DF（守備の要）";
-      if (position === "gk") posName = "GK（守護神）";
+      // ポジションの補足
+      let posAdvice = "";
+      if (position === "fw") posAdvice = "FWなら、ラ・クロケタやチョップフェイントを練習すると「消える動き」でシュートチャンスが増えます。";
+      if (position === "mf") posAdvice = "MFなら、視野の広さとパス精度を活かせるスパイクを選ぶと良いです。";
+      if (position === "df") posAdvice = "DFなら、安定性と耐久性を重視したモデルを選ぶと安心です。";
+      if (position === "gk") posAdvice = "GKなら、グリップ力と安定性を重視して選びましょう。";
 
       document.getElementById("result").innerHTML = `
-        <h2>診断結果</h2>
-        <p><strong>おすすめモデル：</strong>${recommendation}</p>
-        <p><strong>あなたの強み：</strong>${strength}</p>
-        <p><strong>希望ポジション：</strong>${posName}</p>
-        <p><strong>足サイズ：</strong>${size} cm / <strong>足幅：</strong>${width} cm</p>
+        <h3>診断結果</h3>
+        <p><b>おすすめモデル：</b> ${model}</p>
+        <p><b>あなたの強み：</b> ${strength}</p>
+        <p><b>アドバイス：</b> ${advice}</p>
+        <p><b>希望ポジションに向けた提案：</b> ${posAdvice}</p>
+        <p><b>入力情報：</b> 足サイズ：${size} cm / 足幅：${width} cm</p>
       `;
     }
   </script>
-
 </body>
 </html>
