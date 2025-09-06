@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>足型診断スパイクセレクター</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; }
+    h1 { color: #222; }
+    label { display: block; margin-top: 15px; }
+    select, input { padding: 5px; margin-top: 5px; width: 200px; }
+    button { margin-top: 20px; padding: 10px 20px; background: #222; color: #fff; border: none; cursor: pointer; }
+    #result { margin-top: 30px; padding: 15px; border: 1px solid #ccc; background: #f9f9f9; }
+  </style>
+</head>
+<body>
+
+  <h1>足型診断スパイクセレクター⚽</h1>
+  <p>足の特徴とポジションを入力すると、おすすめシューズと向きポジションを提案します！</p>
+
+  <form id="diagnosisForm">
+    <label>足のサイズ（cm）:
+      <input type="number" id="size" step="0.5" required>
+    </label>
+
+    <label>足の幅（cm）:
+      <input type="number" id="width" step="0.1" required>
+    </label>
+
+    <label>足型タイプ:
+      <select id="footType">
+        <option value="egypt">エジプト型（親指が長い）</option>
+        <option value="greek">ギリシャ型（人差し指が長い）</option>
+        <option value="square">スクエア型（親指と人差し指が同じ）</option>
+      </select>
+    </label>
+
+    <label>アーチの高さ:
+      <select id="arch">
+        <option value="high">高い</option>
+        <option value="normal">普通</option>
+        <option value="low">低い</option>
+      </select>
+    </label>
+
+    <label>希望／現在のポジション:
+      <select id="position">
+        <option value="fw">FW（フォワード）</option>
+        <option value="mf">MF（ミッドフィルダー）</option>
+        <option value="df">DF（ディフェンダー）</option>
+        <option value="gk">GK（ゴールキーパー）</option>
+      </select>
+    </label>
+
+    <button type="button" onclick="diagnose()">診断する</button>
+  </form>
+
+  <div id="result"></div>
+
+  <script>
+    function diagnose() {
+      const size = document.getElementById("size").value;
+      const width = document.getElementById("width").value;
+      const footType = document.getElementById("footType").value;
+      const arch = document.getElementById("arch").value;
+      const position = document.getElementById("position").value;
+
+      let recommendation = "";
+      let strength = "";
+
+      // 足型と幅で診断ロジック
+      if (footType === "greek" && width <= 10) {
+        recommendation = "Nike Mercurial / Phantom GX（ナロー足向け）";
+        strength = "瞬発力・裏抜け型、消えるFWスタイルに向きます！";
+      } else if (footType === "egypt" && width >= 9) {
+        recommendation = "Mizuno Morelia Neo / Adidas Copa Pure（幅広向け）";
+        strength = "安定性・持久力型、中盤やサイドで活躍できます！";
+      } else if (footType === "square") {
+        recommendation = "Puma Future / Adidas Predator（標準フィット）";
+        strength = "バランス型、MFやDFでのコントロール役に最適です！";
+      } else {
+        recommendation = "Nike Phantom GX 2 / Puma Ultra（汎用フィット）";
+        strength = "攻守両面で適応できる万能タイプ！";
+      }
+
+      // アーチ補足
+      if (arch === "high") {
+        strength += " アーチが高いので、スピードとジャンプ力が得意です。";
+      } else if (arch === "low") {
+        strength += " アーチが低いので、インソールでサポートすると安定します。";
+      }
+
+      // ポジション補足
+      let posName = "";
+      if (position === "fw") posName = "FW（ストライカー）";
+      if (position === "mf") posName = "MF（ゲームメーカー）";
+      if (position === "df") posName = "DF（守備の要）";
+      if (position === "gk") posName = "GK（守護神）";
+
+      document.getElementById("result").innerHTML = `
+        <h2>診断結果</h2>
+        <p><strong>おすすめモデル：</strong>${recommendation}</p>
+        <p><strong>あなたの強み：</strong>${strength}</p>
+        <p><strong>希望ポジション：</strong>${posName}</p>
+        <p><strong>足サイズ：</strong>${size} cm / <strong>足幅：</strong>${width} cm</p>
+      `;
+    }
+  </script>
+
+</body>
+</html>
